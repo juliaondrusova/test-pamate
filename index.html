@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test kognitívnej kapacity (3x3x3x3)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=DM+Sans:wght@300;400;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #fff;
+            color: #0a0a0a;
+            font-family: 'DM Sans', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #main-display {
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(5rem, 25vw, 15rem);
+            font-weight: 500;
+            text-align: center;
+            min-height: 1.2em;
+        }
+
+        #instruction-text {
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
+            font-weight: 400;
+            text-align: center;
+            max-width: 800px;
+            padding: 0 2rem;
+            line-height: 1.4;
+        }
+
+        #level-badge {
+            position: fixed;
+            top: 3rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #999;
+        }
+
+        #progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #000;
+            width: 0%;
+        }
+
+        #start-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-start {
+            margin-top: 2rem;
+            padding: 1rem 2.5rem;
+            border: 1px solid #fff;
+            background: none;
+            color: white;
+            font-family: 'DM Mono';
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-start:hover { background: #fff; color: #000; }
+
+        .card { background: #f4f4f4; padding: 1.5rem; border-radius: 10px; margin: 10px 0; text-align: left; border-left: 5px solid #000; width: 100%; max-width: 600px; }
+    </style>
+</head>
+<body>
+
+<div id="start-overlay" onclick="startExperiment()">
+    <h1 style="font-family: 'DM Mono';">Test kapacity pamäte</h1>
+    <p style="margin-top:10px; color:#aaa;">Pripravte si papier a pero na zápis.</p>
+    <button class="btn-start">SPUSTIŤ EXPERIMENT</button>
+</div>
+
+<div id="screen">
+    <div id="level-badge"></div>
+    <div id="main-display"></div>
+    <div id="instruction-text"></div>
+    <div id="progress-bar"></div>
+</div>
+
+<script>
+const sequence = [
+    { type: 'info', text: 'Zapamätajte si čísla v poradí, v akom ich uvidíte.', duration: 4000 },
+    
+    // LEVEL 1
+    { type: 'lvl', label: 'LEVEL 1: 3 ČÍSLA (Pokus 1/3)', digits: [7,2,9] },
+    { type: 'lvl', label: 'LEVEL 1: 3 ČÍSLA (Pokus 2/3)', digits: [4,8,1] },
+    { type: 'lvl', label: 'LEVEL 1: 3 ČÍSLA (Pokus 3/3)', digits: [3,6,5] },
+    
+    // LEVEL 2
+    { type: 'lvl', label: 'LEVEL 2: 5 ČÍSIEL (Pokus 1/3)', digits: [4,1,8,5,3] },
+    { type: 'lvl', label: 'LEVEL 2: 5 ČÍSIEL (Pokus 2/3)', digits: [7,9,2,6,0] },
+    { type: 'lvl', label: 'LEVEL 2: 5 ČÍSIEL (Pokus 3/3)', digits: [5,3,1,7,4] },
+
+    // LEVEL 3
+    { type: 'lvl', label: 'LEVEL 3: 7 ČÍSIEL (Pokus 1/3)', digits: [9,2,6,3,1,8,5] },
+    { type: 'lvl', label: 'LEVEL 3: 7 ČÍSIEL (Pokus 2/3)', digits: [4,7,1,5,9,2,6] },
+    { type: 'lvl', label: 'LEVEL 3: 7 ČÍSIEL (Pokus 3/3)', digits: [8,3,0,6,4,1,7] },
+
+    // LEVEL 4
+    { type: 'lvl', label: 'LEVEL 4: 9 ČÍSIEL (Pokus 1/3)', digits: [5,3,9,1,4,8,2,7,6] },
+    { type: 'lvl', label: 'LEVEL 4: 9 ČÍSIEL (Pokus 2/3)', digits: [2,7,4,0,6,3,9,1,8] },
+    { type: 'lvl', label: 'LEVEL 4: 9 ČÍSIEL (Pokus 3/3)', digits: [6,1,8,4,7,0,3,5,2] }
+];
+
+let stepIndex = 0;
+const mainDisp = document.getElementById('main-display');
+const instrText = document.getElementById('instruction-text');
+const badge = document.getElementById('level-badge');
+const progress = document.getElementById('progress-bar');
+
+async function startExperiment() {
+    document.getElementById('start-overlay').style.display = 'none';
+    runNextStep();
+}
+
+async function runNextStep() {
+    if (stepIndex >= sequence.length) {
+        showResults();
+        return;
+    }
+
+    const s = sequence[stepIndex];
+    stepIndex++;
+
+    if (s.type === 'info') {
+        badge.textContent = "";
+        showInstruction(s.text, s.duration, runNextStep);
+    } 
+    else if (s.type === 'lvl') {
+        badge.textContent = s.label;
+        await playLevel(s.digits);
+        runNextStep();
+    }
+}
+
+function showInstruction(text, ms, callback) {
+    mainDisp.textContent = '';
+    instrText.textContent = text;
+    animateProgress(ms);
+    setTimeout(() => {
+        instrText.textContent = '';
+        callback();
+    }, ms);
+}
+
+async function playLevel(digits) {
+    instrText.textContent = '';
+    
+    // 1. Sekvenčné zobrazenie (0.5s na každú číslicu)
+    for (let d of digits) {
+        mainDisp.textContent = d;
+        await sleep(500);
+        mainDisp.textContent = '';
+        await sleep(50); 
+    }
+
+    // 2. Retenčná pauza (2s tma)
+    mainDisp.textContent = '';
+    await sleep(2000);
+
+    // 3. Pokyn na zápis (12s)
+    instrText.textContent = "ZAPÍŠTE ČÍSLA";
+    animateProgress(12000);
+    await sleep(12000);
+    instrText.textContent = "";
+}
+
+function animateProgress(ms) {
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
+    setTimeout(() => {
+        progress.style.transition = `width ${ms}ms linear`;
+        progress.style.width = '100%';
+    }, 10);
+}
+
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function showResults() {
+    badge.textContent = "";
+    progress.style.display = 'none';
+    document.getElementById('screen').innerHTML = `
+        <div style="padding: 2rem; text-align: center;">
+            <h2 style="font-family: 'DM Mono'; margin-bottom: 2rem;">Výsledky experimentu</h2>
+            <div class="card">
+                <strong>Millerovo číslo (7±2):</strong> Väčšina ľudí zvládne Level 2 bez chýb, no v Leveli 3 (7 čísiel) sa už objavujú prvé výpadky.
+            </div>
+            <div class="card">
+                <strong>Cowanov limit (4±1):</strong> Ak ste robili chyby už pri 5 číslach, vaša čistá kapacita pozornosti zodpovedá moderným výskumom (cca 4 položky).
+            </div>
+            <button onclick="location.reload()" style="margin-top:2rem; padding:10px 20px; cursor:pointer;">REŠTARTOVAŤ TEST</button>
+        </div>
+    `;
+}
+</script>
+</body>
+</html>
