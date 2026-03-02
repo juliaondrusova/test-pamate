@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test kognitívnej kapacity (3x3x3x3)</title>
+    <title>Test kognitívnej kapacity</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=DM+Sans:wght@300;400;600&display=swap');
 
@@ -33,26 +33,17 @@
 
         #main-display {
             font-family: 'DM Mono', monospace;
-            font-size: clamp(5rem, 25vw, 15rem);
+            font-size: clamp(3rem, 15vw, 10rem);
             font-weight: 500;
             text-align: center;
             min-height: 1.2em;
-        }
-
-        #instruction-text {
-            font-size: clamp(1.2rem, 3vw, 2.5rem);
-            font-weight: 400;
-            text-align: center;
-            max-width: 800px;
-            padding: 0 2rem;
-            line-height: 1.4;
         }
 
         #level-badge {
             position: fixed;
             top: 3rem;
             font-family: 'DM Mono', monospace;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             letter-spacing: 0.2em;
             text-transform: uppercase;
             color: #999;
@@ -94,54 +85,115 @@
         }
         .btn-start:hover { background: #fff; color: #000; }
 
-        .card { background: #f4f4f4; padding: 1.5rem; border-radius: 10px; margin: 10px 0; text-align: left; border-left: 5px solid #000; width: 100%; max-width: 600px; }
+        #input-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #user-input {
+            width: 85%;
+            padding: 12px;
+            font-family: 'DM Mono', monospace;
+            font-size: 2.2rem;
+            text-align: center;
+            border: 2px solid #000;
+            outline: none;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            letter-spacing: 0.1em;
+        }
+
+        #submit-btn {
+            padding: 12px 35px;
+            background: #000;
+            color: #fff;
+            border: none;
+            font-family: 'DM Mono';
+            cursor: pointer;
+        }
+
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            max-width: 650px;
+            padding: 2rem;
+        }
+
+        .results-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            font-family: 'DM Mono', monospace;
+        }
+        .results-table td, .results-table th {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        .card { 
+            background: #f4f4f4; 
+            padding: 1.5rem; 
+            border-radius: 10px; 
+            margin: 10px 0; 
+            text-align: center;
+            border-bottom: 4px solid #000; 
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
 <div id="start-overlay" onclick="startExperiment()">
     <h1 style="font-family: 'DM Mono';">Test kapacity pamäte</h1>
-    <p style="margin-top:10px; color:#aaa;">Pripravte si papier a pero na zápis.</p>
-    <button class="btn-start">SPUSTIŤ EXPERIMENT</button>
+    <p style="margin-top:10px; color:#aaa;">Pripravte sa na digitálny zápis.</p>
+    <button class="btn-start">SPUSTIŤ TEST</button>
 </div>
 
 <div id="screen">
     <div id="level-badge"></div>
     <div id="main-display"></div>
-    <div id="instruction-text"></div>
+    
+    <div id="input-container">
+        <p id="timer-label" style="margin-bottom: 10px; font-family: 'DM Mono'; font-size: 1rem; color: #000; font-weight: bold;">Zostáva: 12s</p>
+        <input type="text" id="user-input" inputmode="numeric" autocomplete="off">
+        <button id="submit-btn" onclick="submitAnswer()">ODOSLAŤ</button>
+    </div>
+
     <div id="progress-bar"></div>
 </div>
 
 <script>
 const sequence = [
-    { type: 'info', text: 'Zapamätajte si čísla v poradí, v akom ich uvidíte.', duration: 4000 },
-    
-    // LEVEL 1
-    { type: 'lvl', label: 'LEVEL 1: 3 ČÍSLA (Pokus 1/3)', digits: [7,2,9] },
-    { type: 'lvl', label: 'LEVEL 1: 3 ČÍSLA (Pokus 2/3)', digits: [4,8,1] },
-    { type: 'lvl', label: 'LEVEL 1: 3 ČÍSLA (Pokus 3/3)', digits: [3,6,5] },
-    
-    // LEVEL 2
-    { type: 'lvl', label: 'LEVEL 2: 5 ČÍSIEL (Pokus 1/3)', digits: [4,1,8,5,3] },
-    { type: 'lvl', label: 'LEVEL 2: 5 ČÍSIEL (Pokus 2/3)', digits: [7,9,2,6,0] },
-    { type: 'lvl', label: 'LEVEL 2: 5 ČÍSIEL (Pokus 3/3)', digits: [5,3,1,7,4] },
-
-    // LEVEL 3
-    { type: 'lvl', label: 'LEVEL 3: 7 ČÍSIEL (Pokus 1/3)', digits: [9,2,6,3,1,8,5] },
-    { type: 'lvl', label: 'LEVEL 3: 7 ČÍSIEL (Pokus 2/3)', digits: [4,7,1,5,9,2,6] },
-    { type: 'lvl', label: 'LEVEL 3: 7 ČÍSIEL (Pokus 3/3)', digits: [8,3,0,6,4,1,7] },
-
-    // LEVEL 4
-    { type: 'lvl', label: 'LEVEL 4: 9 ČÍSIEL (Pokus 1/3)', digits: [5,3,9,1,4,8,2,7,6] },
-    { type: 'lvl', label: 'LEVEL 4: 9 ČÍSIEL (Pokus 2/3)', digits: [2,7,4,0,6,3,9,1,8] },
-    { type: 'lvl', label: 'LEVEL 4: 9 ČÍSIEL (Pokus 3/3)', digits: [6,1,8,4,7,0,3,5,2] }
+    { lvl: 1, label: 'LEVEL 1: 3 ČÍSLA (1/3)', digits: [7,2,9] },
+    { lvl: 1, label: 'LEVEL 1: 3 ČÍSLA (2/3)', digits: [4,8,1] },
+    { lvl: 1, label: 'LEVEL 1: 3 ČÍSLA (3/3)', digits: [3,6,5] },
+    { lvl: 2, label: 'LEVEL 2: 5 ČÍSIEL (1/3)', digits: [4,1,8,5,3] },
+    { lvl: 2, label: 'LEVEL 2: 5 ČÍSIEL (2/3)', digits: [7,9,2,6,0] },
+    { lvl: 2, label: 'LEVEL 2: 5 ČÍSIEL (3/3)', digits: [5,3,1,7,4] },
+    { lvl: 3, label: 'LEVEL 3: 7 ČÍSIEL (1/3)', digits: [9,2,6,3,1,8,5] },
+    { lvl: 3, label: 'LEVEL 3: 7 ČÍSIEL (2/3)', digits: [4,7,1,5,9,2,6] },
+    { lvl: 3, label: 'LEVEL 3: 7 ČÍSIEL (3/3)', digits: [8,3,0,6,4,1,7] },
+    { lvl: 4, label: 'LEVEL 4: 9 ČÍSIEL (1/3)', digits: [5,3,9,1,4,8,2,7,6] },
+    { lvl: 4, label: 'LEVEL 4: 9 ČÍSIEL (2/3)', digits: [2,7,4,0,6,3,9,1,8] },
+    { lvl: 4, label: 'LEVEL 4: 9 ČÍSIEL (3/3)', digits: [6,1,8,4,7,0,3,5,2] }
 ];
 
 let stepIndex = 0;
+let userResults = [];
+let inputTimeout;
+let countdownInterval;
 const mainDisp = document.getElementById('main-display');
-const instrText = document.getElementById('instruction-text');
 const badge = document.getElementById('level-badge');
 const progress = document.getElementById('progress-bar');
+const inputContainer = document.getElementById('input-container');
+const userInput = document.getElementById('user-input');
+const timerLabel = document.getElementById('timer-label');
 
 async function startExperiment() {
     document.getElementById('start-overlay').style.display = 'none';
@@ -155,75 +207,115 @@ async function runNextStep() {
     }
 
     const s = sequence[stepIndex];
-    stepIndex++;
-
-    if (s.type === 'info') {
-        badge.textContent = "";
-        showInstruction(s.text, s.duration, runNextStep);
-    } 
-    else if (s.type === 'lvl') {
-        badge.textContent = s.label;
-        await playLevel(s.digits);
-        runNextStep();
-    }
-}
-
-function showInstruction(text, ms, callback) {
-    mainDisp.textContent = '';
-    instrText.textContent = text;
-    animateProgress(ms);
-    setTimeout(() => {
-        instrText.textContent = '';
-        callback();
-    }, ms);
-}
-
-async function playLevel(digits) {
-    instrText.textContent = '';
+    badge.textContent = s.label;
+    inputContainer.style.display = 'none';
+    userInput.value = '';
     
-    // 1. Sekvenčné zobrazenie (0.5s na každú číslicu)
-    for (let d of digits) {
+    // Reset progress baru pred novým kolom
+    resetProgressBar();
+
+    // 1. Obrazovka Pripravte sa
+    mainDisp.style.fontSize = "clamp(2rem, 10vw, 4rem)";
+    mainDisp.textContent = "Pripravte sa...";
+    await sleep(2000);
+    mainDisp.style.fontSize = "clamp(3rem, 15vw, 10rem)";
+
+    // 2. Zobrazenie číslic
+    for (let d of s.digits) {
         mainDisp.textContent = d;
         await sleep(500);
         mainDisp.textContent = '';
         await sleep(50); 
     }
 
-    // 2. Retenčná pauza (2s tma)
-    mainDisp.textContent = '';
+    // 3. Retenčná pauza
     await sleep(2000);
 
-    // 3. Pokyn na zápis (12s)
-    instrText.textContent = "ZAPÍŠTE ČÍSLA";
-    animateProgress(12000);
-    await sleep(12000);
-    instrText.textContent = "";
+    // 4. Zobrazenie inputu
+    mainDisp.textContent = '';
+    userInput.placeholder = ".".repeat(s.digits.length);
+    inputContainer.style.display = 'flex';
+    userInput.focus();
+
+    startTimer(12);
 }
 
-function animateProgress(ms) {
+function startTimer(seconds) {
+    let remaining = seconds;
+    timerLabel.textContent = `Zostáva: ${remaining}s`;
+    
+    // Spustíme animáciu z 100% na 0%
+    progress.style.transition = 'none';
+    progress.style.width = '100%';
+    setTimeout(() => {
+        progress.style.transition = `width ${seconds * 1000}ms linear`;
+        progress.style.width = '0%';
+    }, 20);
+
+    countdownInterval = setInterval(() => {
+        remaining--;
+        timerLabel.textContent = `Zostáva: ${remaining}s`;
+        if (remaining <= 0) clearInterval(countdownInterval);
+    }, 1000);
+
+    inputTimeout = setTimeout(() => {
+        submitAnswer();
+    }, seconds * 1000);
+}
+
+function resetProgressBar() {
     progress.style.transition = 'none';
     progress.style.width = '0%';
-    setTimeout(() => {
-        progress.style.transition = `width ${ms}ms linear`;
-        progress.style.width = '100%';
-    }, 10);
 }
+
+function submitAnswer() {
+    // Okamžité zastavenie všetkých časovačov a animácií
+    clearTimeout(inputTimeout);
+    clearInterval(countdownInterval);
+    resetProgressBar();
+
+    const s = sequence[stepIndex];
+    const cleanInput = userInput.value.replace(/\D/g, ''); 
+    const isCorrect = cleanInput === s.digits.join('');
+    
+    userResults.push({ lvl: s.lvl, correct: isCorrect });
+    
+    stepIndex++;
+    runNextStep();
+}
+
+userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") submitAnswer(); });
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 function showResults() {
     badge.textContent = "";
+    inputContainer.style.display = 'none';
     progress.style.display = 'none';
+    
+    const stats = [1, 2, 3, 4].map(l => {
+        const ok = userResults.filter(r => r.lvl === l && r.correct).length;
+        return `<tr><td>Level ${l} (${2*l + 1} číslic)</td><td>${ok} / 3</td></tr>`;
+    }).join('');
+
     document.getElementById('screen').innerHTML = `
-        <div style="padding: 2rem; text-align: center;">
-            <h2 style="font-family: 'DM Mono'; margin-bottom: 2rem;">Výsledky experimentu</h2>
+        <div class="results-container">
+            <h2 style="font-family: 'DM Mono'; margin-bottom: 1.5rem;">Konečné výsledky</h2>
+            
+            <table class="results-table">
+                <thead><tr><th>Úroveň</th><th>Úspešnosť</th></tr></thead>
+                <tbody>${stats}</tbody>
+            </table>
+
             <div class="card">
-                <strong>Millerovo číslo (7±2):</strong> Väčšina ľudí zvládne Level 2 bez chýb, no v Leveli 3 (7 čísiel) sa už objavujú prvé výpadky.
+                <strong>Millerovo číslo (7±2)</strong><br>
+                Väčšina ľudí zvláda 5-6 číslic, ale pri 7 a viac dochádza k dramatickému nárastu chýb.
             </div>
             <div class="card">
-                <strong>Cowanov limit (4±1):</strong> Ak ste robili chyby už pri 5 číslach, vaša čistá kapacita pozornosti zodpovedá moderným výskumom (cca 4 položky).
+                <strong>Cowanov limit (4±1)</strong><br>
+                Bez možnosti vedome spájať čísla do skupín je naša čistá kapacita len okolo 4 položiek.
             </div>
-            <button onclick="location.reload()" style="margin-top:2rem; padding:10px 20px; cursor:pointer;">REŠTARTOVAŤ TEST</button>
+            <button onclick="location.reload()" style="margin-top:2rem; padding:12px 25px; cursor:pointer; font-family:'DM Mono'; border:1px solid black; background: white;">REŠTARTOVAŤ TEST</button>
         </div>
     `;
 }
