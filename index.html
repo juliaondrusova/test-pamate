@@ -257,7 +257,7 @@ async function runNextStep() {
     await sleep(2000); 
 
     mainDisp.textContent = '';
-    userInput.placeholder = "• ".repeat(s.digits.length).trim();
+    userInput.placeholder = ".".repeat(s.digits.length).trim();
     inputContainer.style.display = 'flex';
     userInput.focus();
 
