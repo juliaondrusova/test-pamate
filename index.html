@@ -3,166 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test kognitívnej kapacity</title>
+    <title>Memory Lab | Test STM</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=DM+Sans:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+
+        :root {
+            --bg: #fdfdfd;
+            --text: #111827;
+            --accent: #4f46e5;
+            --accent-soft: #eef2ff;
+            --card-bg: #ffffff;
+            --gray: #6b7280;
+            --border: #e5e7eb;
+        }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #fff;
-            color: #0a0a0a;
-            font-family: 'DM Sans', sans-serif;
-            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             user-select: none;
         }
 
         #screen {
             width: 100%;
-            height: 100%;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
+            padding: 40px 20px;
         }
 
+        /* --- DISPLAY --- */
         #main-display {
             font-family: 'DM Mono', monospace;
-            font-size: clamp(3rem, 15vw, 10rem);
+            font-size: clamp(5rem, 30vw, 14rem);
             font-weight: 500;
             text-align: center;
             min-height: 1.2em;
+            color: var(--text);
+            transition: opacity 0.3s ease;
         }
 
         #level-badge {
             position: fixed;
-            top: 3rem;
+            top: 2.5rem;
             font-family: 'DM Mono', monospace;
-            font-size: 0.8rem;
-            letter-spacing: 0.2em;
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
             text-transform: uppercase;
-            color: #999;
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-weight: 600;
         }
 
+        /* --- PROGRESS BAR --- */
         #progress-bar {
             position: fixed;
             bottom: 0;
             left: 0;
-            height: 5px;
-            background: #000;
+            height: 8px;
+            background: var(--accent);
             width: 0%;
+            z-index: 100;
         }
 
+        /* --- START OVERLAY --- */
         #start-overlay {
             position: fixed;
             inset: 0;
-            background: #0a0a0a;
+            background: var(--text);
             color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            cursor: pointer;
             text-align: center;
+            padding: 20px;
         }
 
-        .btn-start {
+        .btn-primary {
             margin-top: 2rem;
             padding: 1rem 2.5rem;
-            border: 1px solid #fff;
-            background: none;
+            background: var(--accent);
             color: white;
-            font-family: 'DM Mono';
+            border: none;
+            font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
+            border-radius: 100px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            text-transform: uppercase;
         }
-        .btn-start:hover { background: #fff; color: #000; }
 
+        /* --- OPRAVENÝ MENŠÍ INPUT --- */
         #input-container {
             display: none;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 400px;
+            max-width: 300px; /* Zmenšená šírka kontajnera */
+            animation: fadeIn 0.5s ease;
         }
 
         #user-input {
-            width: 85%;
+            width: 100%;
             padding: 12px;
             font-family: 'DM Mono', monospace;
-            font-size: 2.2rem;
+            font-size: 1.8rem; /* Zmenšené písmo v inpute */
             text-align: center;
-            border: 2px solid #000;
+            border: 2px solid var(--border);
+            background: white;
             outline: none;
             margin-bottom: 20px;
-            border-radius: 4px;
-            letter-spacing: 0.1em;
+            border-radius: 12px;
+            color: var(--accent);
         }
 
-        #submit-btn {
-            padding: 12px 35px;
-            background: #000;
-            color: #fff;
-            border: none;
-            font-family: 'DM Mono';
-            cursor: pointer;
+        #timer-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
+        /* --- RESULTS --- */
         .results-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
             width: 100%;
-            max-width: 650px;
-            padding: 2rem;
+            max-width: 550px;
+            padding: 60px 20px;
         }
 
         .results-table {
             width: 100%;
-            margin: 20px 0;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--border);
             border-collapse: collapse;
-            font-family: 'DM Mono', monospace;
+            overflow: hidden;
+            margin-bottom: 25px;
         }
-        .results-table td, .results-table th {
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
+        .results-table td { padding: 15px; border-bottom: 1px solid var(--border); }
 
         .card { 
-            background: #f4f4f4; 
+            background: white; 
             padding: 1.5rem; 
-            border-radius: 10px; 
-            margin: 10px 0; 
+            border-radius: 20px; 
+            margin: 8px 0; 
             text-align: center;
-            border-bottom: 4px solid #000; 
+            border: 1px solid var(--border);
             width: 100%;
         }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="start-overlay" onclick="startExperiment()">
-    <h1 style="font-family: 'DM Mono';">Test kapacity pamäte</h1>
-    <p style="margin-top:10px; color:#aaa;">Pripravte sa na digitálny zápis.</p>
-    <button class="btn-start">SPUSTIŤ TEST</button>
+<div id="start-overlay">
+    <h1 style="font-size: 2rem; margin-bottom: 10px;">Praktický test kapacity STM</h1>
+    <p style="opacity: 0.7;">Zmerajte si kapacitu svojej krátkodobej pamäte za 2 minúty</p>
+    <button class="btn-primary" onclick="startExperiment()">Spustiť test</button>
 </div>
 
 <div id="screen">
-    <div id="level-badge"></div>
+    <div id="level-badge">PRIPRAVUJEM...</div>
     <div id="main-display"></div>
     
     <div id="input-container">
-        <p id="timer-label" style="margin-bottom: 10px; font-family: 'DM Mono'; font-size: 1rem; color: #000; font-weight: bold;">Zostáva: 12s</p>
+        <p id="timer-label">Zostáva: 12 sekúnd</p>
         <input type="text" id="user-input" inputmode="numeric" autocomplete="off">
-        <button id="submit-btn" onclick="submitAnswer()">ODOSLAŤ</button>
+        <button class="btn-primary" style="margin-top: 0; padding: 0.8rem 2rem;" onclick="submitAnswer()">ODOSLAŤ</button>
     </div>
 
     <div id="progress-bar"></div>
@@ -170,18 +199,18 @@
 
 <script>
 const sequence = [
-    { lvl: 1, label: 'LEVEL 1: 3 ČÍSLA (1/3)', digits: [7,2,9] },
-    { lvl: 1, label: 'LEVEL 1: 3 ČÍSLA (2/3)', digits: [4,8,1] },
-    { lvl: 1, label: 'LEVEL 1: 3 ČÍSLA (3/3)', digits: [3,6,5] },
-    { lvl: 2, label: 'LEVEL 2: 5 ČÍSIEL (1/3)', digits: [4,1,8,5,3] },
-    { lvl: 2, label: 'LEVEL 2: 5 ČÍSIEL (2/3)', digits: [7,9,2,6,0] },
-    { lvl: 2, label: 'LEVEL 2: 5 ČÍSIEL (3/3)', digits: [5,3,1,7,4] },
-    { lvl: 3, label: 'LEVEL 3: 7 ČÍSIEL (1/3)', digits: [9,2,6,3,1,8,5] },
-    { lvl: 3, label: 'LEVEL 3: 7 ČÍSIEL (2/3)', digits: [4,7,1,5,9,2,6] },
-    { lvl: 3, label: 'LEVEL 3: 7 ČÍSIEL (3/3)', digits: [8,3,0,6,4,1,7] },
-    { lvl: 4, label: 'LEVEL 4: 9 ČÍSIEL (1/3)', digits: [5,3,9,1,4,8,2,7,6] },
-    { lvl: 4, label: 'LEVEL 4: 9 ČÍSIEL (2/3)', digits: [2,7,4,0,6,3,9,1,8] },
-    { lvl: 4, label: 'LEVEL 4: 9 ČÍSIEL (3/3)', digits: [6,1,8,4,7,0,3,5,2] }
+    { lvl: 1, label: 'Úroveň 1 • 3 čísla', digits: [7,2,9] },
+    { lvl: 1, label: 'Úroveň 1 • 3 čísla', digits: [4,8,1] },
+    { lvl: 1, label: 'Úroveň 1 • 3 čísla', digits: [3,6,5] },
+    { lvl: 2, label: 'Úroveň 2 • 5 čísiel', digits: [4,1,8,5,3] },
+    { lvl: 2, label: 'Úroveň 2 • 5 čísiel', digits: [7,9,2,6,0] },
+    { lvl: 2, label: 'Úroveň 2 • 5 čísiel', digits: [5,3,1,7,4] },
+    { lvl: 3, label: 'Úroveň 3 • 7 čísiel', digits: [9,2,6,3,1,8,5] },
+    { lvl: 3, label: 'Úroveň 3 • 7 čísiel', digits: [4,7,1,5,9,2,6] },
+    { lvl: 3, label: 'Úroveň 3 • 7 čísiel', digits: [8,3,0,6,4,1,7] },
+    { lvl: 4, label: 'Úroveň 4 • 9 čísiel', digits: [5,3,9,1,4,8,2,7,6] },
+    { lvl: 4, label: 'Úroveň 4 • 9 čísiel', digits: [2,7,4,0,6,3,9,1,8] },
+    { lvl: 4, label: 'Úroveň 4 • 9 čísiel', digits: [6,1,8,4,7,0,3,5,2] }
 ];
 
 let stepIndex = 0;
@@ -201,39 +230,34 @@ async function startExperiment() {
 }
 
 async function runNextStep() {
-    if (stepIndex >= sequence.length) {
-        showResults();
-        return;
-    }
+    if (stepIndex >= sequence.length) { showResults(); return; }
 
     const s = sequence[stepIndex];
     badge.textContent = s.label;
     inputContainer.style.display = 'none';
     userInput.value = '';
     
-    // Reset progress baru pred novým kolom
-    resetProgressBar();
+    // Pripravte sa - decentný statický nápis
+    mainDisp.style.fontSize = "1.5rem";
+    mainDisp.style.letterSpacing = "0.2em";
+    mainDisp.textContent = "PRIPRAVTE SA...";
+    await sleep(1800);
+    
+    // Číslice
+    mainDisp.style.fontSize = "clamp(5rem, 30vw, 14rem)";
+    mainDisp.style.letterSpacing = "normal";
 
-    // 1. Obrazovka Pripravte sa
-    mainDisp.style.fontSize = "clamp(2rem, 10vw, 4rem)";
-    mainDisp.textContent = "Pripravte sa...";
-    await sleep(2000);
-    mainDisp.style.fontSize = "clamp(3rem, 15vw, 10rem)";
-
-    // 2. Zobrazenie číslic
     for (let d of s.digits) {
         mainDisp.textContent = d;
-        await sleep(500);
+        await sleep(550);
         mainDisp.textContent = '';
-        await sleep(50); 
+        await sleep(100); 
     }
 
-    // 3. Retenčná pauza
-    await sleep(2000);
+    await sleep(2000); 
 
-    // 4. Zobrazenie inputu
     mainDisp.textContent = '';
-    userInput.placeholder = ".".repeat(s.digits.length);
+    userInput.placeholder = "• ".repeat(s.digits.length).trim();
     inputContainer.style.display = 'flex';
     userInput.focus();
 
@@ -242,82 +266,66 @@ async function runNextStep() {
 
 function startTimer(seconds) {
     let remaining = seconds;
-    timerLabel.textContent = `Zostáva: ${remaining}s`;
-    
-    // Spustíme animáciu z 100% na 0%
+    timerLabel.textContent = `Zostáva: ${remaining} sekúnd`;
     progress.style.transition = 'none';
     progress.style.width = '100%';
     setTimeout(() => {
         progress.style.transition = `width ${seconds * 1000}ms linear`;
         progress.style.width = '0%';
-    }, 20);
+    }, 50);
 
     countdownInterval = setInterval(() => {
         remaining--;
-        timerLabel.textContent = `Zostáva: ${remaining}s`;
+        timerLabel.textContent = `Zostáva: ${remaining} sekúnd`;
         if (remaining <= 0) clearInterval(countdownInterval);
     }, 1000);
 
-    inputTimeout = setTimeout(() => {
-        submitAnswer();
-    }, seconds * 1000);
-}
-
-function resetProgressBar() {
-    progress.style.transition = 'none';
-    progress.style.width = '0%';
+    inputTimeout = setTimeout(() => submitAnswer(), seconds * 1000);
 }
 
 function submitAnswer() {
-    // Okamžité zastavenie všetkých časovačov a animácií
     clearTimeout(inputTimeout);
     clearInterval(countdownInterval);
-    resetProgressBar();
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
 
     const s = sequence[stepIndex];
-    const cleanInput = userInput.value.replace(/\D/g, ''); 
-    const isCorrect = cleanInput === s.digits.join('');
-    
-    userResults.push({ lvl: s.lvl, correct: isCorrect });
+    const val = userInput.value.replace(/\D/g, ''); 
+    userResults.push({ lvl: s.lvl, correct: val === s.digits.join('') });
     
     stepIndex++;
     runNextStep();
 }
 
 userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") submitAnswer(); });
-
-function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function showResults() {
-    badge.textContent = "";
+    badge.textContent = "KONIEC TESTU";
     inputContainer.style.display = 'none';
     progress.style.display = 'none';
     
     const stats = [1, 2, 3, 4].map(l => {
         const ok = userResults.filter(r => r.lvl === l && r.correct).length;
-        return `<tr><td>Level ${l} (${2*l + 1} číslic)</td><td>${ok} / 3</td></tr>`;
+        return `<tr><td style="color:var(--gray)">Úroveň ${l}</td><td style="text-align:right"><strong>${ok} / 3</strong></td></tr>`;
     }).join('');
 
     document.getElementById('screen').innerHTML = `
         <div class="results-container">
-            <h2 style="font-family: 'DM Mono'; margin-bottom: 1.5rem;">Konečné výsledky</h2>
-            
-            <table class="results-table">
-                <thead><tr><th>Úroveň</th><th>Úspešnosť</th></tr></thead>
-                <tbody>${stats}</tbody>
-            </table>
-
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Vaše výsledky</h2>
+            <table class="results-table"><tbody>${stats}</tbody></table>
             <div class="card">
-                <strong>Millerovo číslo (7±2)</strong><br>
-                Väčšina ľudí zvláda 5-6 číslic, ale pri 7 a viac dochádza k dramatickému nárastu chýb.
+                <strong>Millerovo číslo (7 ± 2)</strong>
+                <p style="font-size: 0.9rem; color: var(--gray);">Väčšina ľudí si udrží 5 až 9 položiek. Úroveň 3 (7 čísiel) je kritický bod.</p>
             </div>
             <div class="card">
-                <strong>Cowanov limit (4±1)</strong><br>
-                Bez možnosti vedome spájať čísla do skupín je naša čistá kapacita len okolo 4 položiek.
+                <strong>Cowanov limit (4 ± 1)</strong>
+                <p style="font-size: 0.9rem; color: var(--gray);">Čistá kapacita bez pomôcok je často len okolo 4 položiek.</p>
             </div>
-            <button onclick="location.reload()" style="margin-top:2rem; padding:12px 25px; cursor:pointer; font-family:'DM Mono'; border:1px solid black; background: white;">REŠTARTOVAŤ TEST</button>
+            <button class="btn-primary" onclick="location.reload()">Reštartovať</button>
         </div>
     `;
+    window.scrollTo(0, 0);
 }
 </script>
 </body>
