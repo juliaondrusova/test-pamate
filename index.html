@@ -1,331 +1,411 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Lab | Test STM</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Lab | Test STM</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
 
-        :root {
-            --bg: #fdfdfd;
-            --text: #111827;
-            --accent: #4f46e5;
-            --accent-soft: #eef2ff;
-            --card-bg: #ffffff;
-            --gray: #6b7280;
-            --border: #e5e7eb;
-        }
+:root{
+--bg:#fdfdfd;
+--text:#111827;
+--accent:#4f46e5;
+--accent-soft:#eef2ff;
+--gray:#6b7280;
+--border:#e5e7eb;
+}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+*{margin:0;padding:0;box-sizing:border-box;}
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            overflow-y: auto;
-            user-select: none;
-        }
+body{
+background:var(--bg);
+color:var(--text);
+font-family:'Plus Jakarta Sans',sans-serif;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow-x:hidden;
+}
 
-        #screen {
-            width: 100%;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 40px 20px;
-        }
+#screen{
+width:100%;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+position:relative;
+padding:40px 20px;
+}
 
-        /* --- DISPLAY --- */
-        #main-display {
-            font-family: 'DM Mono', monospace;
-            font-size: clamp(5rem, 30vw, 14rem);
-            font-weight: 500;
-            text-align: center;
-            min-height: 1.2em;
-            color: var(--text);
-            transition: opacity 0.3s ease;
-        }
+#main-display{
+font-family:'DM Mono',monospace;
+font-size:clamp(5rem,30vw,14rem);
+text-align:center;
+min-height:1.2em;
+}
 
-        #level-badge {
-            position: fixed;
-            top: 2.5rem;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--accent);
-            background: var(--accent-soft);
-            padding: 6px 16px;
-            border-radius: 100px;
-            font-weight: 600;
-        }
+#level-badge{
+position:fixed;
+top:2.5rem;
+font-family:'DM Mono',monospace;
+font-size:0.75rem;
+letter-spacing:0.25em;
+text-transform:uppercase;
+color:var(--accent);
+background:var(--accent-soft);
+padding:6px 16px;
+border-radius:100px;
+font-weight:600;
+}
 
-        /* --- PROGRESS BAR --- */
-        #progress-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            height: 8px;
-            background: var(--accent);
-            width: 0%;
-            z-index: 100;
-        }
+#progress-bar{
+position:fixed;
+bottom:0;
+left:0;
+height:8px;
+background:var(--accent);
+width:0%;
+}
 
-        /* --- START OVERLAY --- */
-        #start-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--text);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            text-align: center;
-            padding: 20px;
-        }
+#start-overlay{
+position:fixed;
+inset:0;
+background:var(--text);
+color:white;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:1000;
+text-align:center;
+padding:20px;
+}
 
-        .btn-primary {
-            margin-top: 2rem;
-            padding: 1rem 2.5rem;
-            background: var(--accent);
-            color: white;
-            border: none;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            border-radius: 100px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-            text-transform: uppercase;
-        }
+.btn-primary{
+margin-top:2rem;
+padding:1rem 2.5rem;
+background:var(--accent);
+color:white;
+border:none;
+font-weight:700;
+font-size:1rem;
+cursor:pointer;
+border-radius:100px;
+}
 
-        /* --- OPRAVENÝ MENŠÍ INPUT --- */
-        #input-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 300px; /* Zmenšená šírka kontajnera */
-            animation: fadeIn 0.5s ease;
-        }
+#input-container{
+display:none;
+flex-direction:column;
+align-items:center;
+width:100%;
+max-width:300px;
+}
 
-        #user-input {
-            width: 100%;
-            padding: 12px;
-            font-family: 'DM Mono', monospace;
-            font-size: 1.8rem; /* Zmenšené písmo v inpute */
-            text-align: center;
-            border: 2px solid var(--border);
-            background: white;
-            outline: none;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            color: var(--accent);
-        }
+#user-input{
+width:100%;
+padding:12px;
+font-family:'DM Mono',monospace;
+font-size:1.8rem;
+text-align:center;
+border:2px solid var(--border);
+outline:none;
+margin-bottom:20px;
+border-radius:12px;
+color:var(--accent);
+}
 
-        #timer-label {
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-bottom: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+#timer-label{
+font-size:0.8rem;
+color:var(--gray);
+margin-bottom:10px;
+font-weight:600;
+text-transform:uppercase;
+}
 
-        /* --- RESULTS --- */
-        .results-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 550px;
-            padding: 60px 20px;
-        }
+.results-container{
+display:flex;
+flex-direction:column;
+align-items:center;
+width:100%;
+max-width:550px;
+padding:60px 20px;
+}
 
-        .results-table {
-            width: 100%;
-            background: white;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            border-collapse: collapse;
-            overflow: hidden;
-            margin-bottom: 25px;
-        }
-        .results-table td { padding: 15px; border-bottom: 1px solid var(--border); }
+.results-table{
+width:100%;
+background:white;
+border-radius:20px;
+border:1px solid var(--border);
+border-collapse:collapse;
+margin-bottom:25px;
+}
 
-        .card { 
-            background: white; 
-            padding: 1.5rem; 
-            border-radius: 20px; 
-            margin: 8px 0; 
-            text-align: center;
-            border: 1px solid var(--border);
-            width: 100%;
-        }
+.results-table td{
+padding:15px;
+border-bottom:1px solid var(--border);
+}
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+.card{
+background:white;
+padding:1.5rem;
+border-radius:20px;
+margin:8px 0;
+text-align:center;
+border:1px solid var(--border);
+width:100%;
+}
+</style>
 </head>
 <body>
 
 <div id="start-overlay">
-    <h1 style="font-size: 2rem; margin-bottom: 10px;">Praktický test kapacity STM</h1>
-    <p style="opacity: 0.7;">Zmerajte si kapacitu svojej krátkodobej pamäte za 2 minúty</p>
-    <button class="btn-primary" onclick="startExperiment()">Spustiť test</button>
+<h1 style="font-size:2rem;margin-bottom:10px;">Praktický test kapacity STM</h1>
+<p style="opacity:0.7;">Najskôr si vyskúšate krátky test</p>
+<button class="btn-primary" onclick="startExperiment()">Spustiť testovací test</button>
 </div>
 
 <div id="screen">
-    <div id="level-badge">PRIPRAVUJEM...</div>
-    <div id="main-display"></div>
-    
-    <div id="input-container">
-        <p id="timer-label">Zostáva: 12 sekúnd</p>
-        <input type="text" id="user-input" inputmode="numeric" autocomplete="off">
-        <button class="btn-primary" style="margin-top: 0; padding: 0.8rem 2rem;" onclick="submitAnswer()">ODOSLAŤ</button>
-    </div>
-
-    <div id="progress-bar"></div>
+<div id="level-badge">PRIPRAVUJEM...</div>
+<div id="main-display"></div>
+<div id="input-container">
+<p id="timer-label">Zostáva: 12 sekúnd</p>
+<input type="text" id="user-input" inputmode="numeric" autocomplete="off">
+<button class="btn-primary" style="margin-top:0;padding:0.8rem 2rem;" onclick="submitAnswer()">ODOSLAŤ</button>
+</div>
+<div id="progress-bar"></div>
 </div>
 
 <script>
-const sequence = [
-    { lvl: 1, label: 'Úroveň 1 • 3 čísla', digits: [7,2,9] },
-    { lvl: 1, label: 'Úroveň 1 • 3 čísla', digits: [4,8,1] },
-    { lvl: 1, label: 'Úroveň 1 • 3 čísla', digits: [3,6,5] },
-    { lvl: 2, label: 'Úroveň 2 • 5 čísiel', digits: [4,1,8,5,3] },
-    { lvl: 2, label: 'Úroveň 2 • 5 čísiel', digits: [7,9,2,6,0] },
-    { lvl: 2, label: 'Úroveň 2 • 5 čísiel', digits: [5,3,1,7,4] },
-    { lvl: 3, label: 'Úroveň 3 • 7 čísiel', digits: [9,2,6,3,1,8,5] },
-    { lvl: 3, label: 'Úroveň 3 • 7 čísiel', digits: [4,7,1,5,9,2,6] },
-    { lvl: 3, label: 'Úroveň 3 • 7 čísiel', digits: [8,3,0,6,4,1,7] },
-    { lvl: 4, label: 'Úroveň 4 • 9 čísiel', digits: [5,3,9,1,4,8,2,7,6] },
-    { lvl: 4, label: 'Úroveň 4 • 9 čísiel', digits: [2,7,4,0,6,3,9,1,8] },
-    { lvl: 4, label: 'Úroveň 4 • 9 čísiel', digits: [6,1,8,4,7,0,3,5,2] }
+// --- sekvencie ---
+const practiceSequence=[
+{lvl:0,label:'Testovacie kolo • 3 čísla',digits:[2,7,4]},
+{lvl:0,label:'Testovacie kolo • 4 čísla',digits:[8,1,6,3]}
 ];
 
+const mainSequence=[
+{lvl:1,label:'Úroveň 1 • 3 čísla',digits:[7,2,9]},
+{lvl:1,label:'Úroveň 1 • 3 čísla',digits:[4,8,1]},
+{lvl:1,label:'Úroveň 1 • 3 čísla',digits:[3,6,5]},
+{lvl:2,label:'Úroveň 2 • 5 čísiel',digits:[4,1,8,5,3]},
+{lvl:2,label:'Úroveň 2 • 5 čísiel',digits:[7,9,2,6,0]},
+{lvl:2,label:'Úroveň 2 • 5 čísiel',digits:[5,3,1,7,4]},
+{lvl:3,label:'Úroveň 3 • 7 čísiel',digits:[9,2,6,3,1,8,5]},
+{lvl:3,label:'Úroveň 3 • 7 čísiel',digits:[4,7,1,5,9,2,6]},
+{lvl:3,label:'Úroveň 3 • 7 čísiel',digits:[8,3,0,6,4,1,7]},
+{lvl:4,label:'Úroveň 4 • 9 čísiel',digits:[5,3,9,1,4,8,2,7,6]},
+{lvl:4,label:'Úroveň 4 • 9 čísiel',digits:[2,7,4,0,6,3,9,1,8]},
+{lvl:4,label:'Úroveň 4 • 9 čísiel',digits:[6,1,8,4,7,0,3,5,2]}
+];
+
+let currentSequence = practiceSequence;
+let practiceMode = true;
 let stepIndex = 0;
 let userResults = [];
+
+let mainDisp = document.getElementById('main-display');
+let badge = document.getElementById('level-badge');
+let progress = document.getElementById('progress-bar');
+let inputContainer = document.getElementById('input-container');
+let userInput = document.getElementById('user-input');
+let timerLabel = document.getElementById('timer-label');
+
 let inputTimeout;
 let countdownInterval;
-const mainDisp = document.getElementById('main-display');
-const badge = document.getElementById('level-badge');
-const progress = document.getElementById('progress-bar');
-const inputContainer = document.getElementById('input-container');
-const userInput = document.getElementById('user-input');
-const timerLabel = document.getElementById('timer-label');
 
-async function startExperiment() {
-    document.getElementById('start-overlay').style.display = 'none';
-    runNextStep();
+// --- funkcie ---
+function startExperiment(){
+document.getElementById('start-overlay').style.display='none';
+runNextStep();
 }
 
-async function runNextStep() {
-    if (stepIndex >= sequence.length) { showResults(); return; }
-
-    const s = sequence[stepIndex];
-    badge.textContent = s.label;
-    inputContainer.style.display = 'none';
-    userInput.value = '';
-    
-    // Pripravte sa - decentný statický nápis
-    mainDisp.style.fontSize = "1.5rem";
-    mainDisp.style.letterSpacing = "0.2em";
-    mainDisp.textContent = "PRIPRAVTE SA...";
-    await sleep(1800);
-    
-    // Číslice
-    mainDisp.style.fontSize = "clamp(5rem, 30vw, 14rem)";
-    mainDisp.style.letterSpacing = "normal";
-
-    for (let d of s.digits) {
-        mainDisp.textContent = d;
-        await sleep(550);
-        mainDisp.textContent = '';
-        await sleep(100); 
-    }
-
-    await sleep(2000); 
-
-    mainDisp.textContent = '';
-    userInput.placeholder = ".".repeat(s.digits.length).trim();
-    inputContainer.style.display = 'flex';
-    userInput.focus();
-
-    startTimer(12);
+async function runNextStep(){
+if(stepIndex >= currentSequence.length){
+if(practiceMode) showPracticeResults();
+else showResults();
+return;
 }
 
-function startTimer(seconds) {
-    let remaining = seconds;
-    timerLabel.textContent = `Zostáva: ${remaining} sekúnd`;
-    progress.style.transition = 'none';
-    progress.style.width = '100%';
-    setTimeout(() => {
-        progress.style.transition = `width ${seconds * 1000}ms linear`;
-        progress.style.width = '0%';
-    }, 50);
+const s = currentSequence[stepIndex];
+badge.textContent = s.label;
+inputContainer.style.display='none';
+userInput.value='';
 
-    countdownInterval = setInterval(() => {
-        remaining--;
-        timerLabel.textContent = `Zostáva: ${remaining} sekúnd`;
-        if (remaining <= 0) clearInterval(countdownInterval);
-    }, 1000);
+mainDisp.style.fontSize="1.5rem";
+mainDisp.style.letterSpacing="0.2em";
+mainDisp.textContent="PRIPRAVTE SA...";
+await sleep(1800);
 
-    inputTimeout = setTimeout(() => submitAnswer(), seconds * 1000);
+mainDisp.style.fontSize="clamp(5rem,30vw,14rem)";
+mainDisp.style.letterSpacing="normal";
+
+for(let d of s.digits){
+mainDisp.textContent=d;
+await sleep(550);
+mainDisp.textContent='';
+await sleep(120);
 }
 
-function submitAnswer() {
-    clearTimeout(inputTimeout);
-    clearInterval(countdownInterval);
-    progress.style.transition = 'none';
-    progress.style.width = '0%';
+await sleep(2000);
 
-    const s = sequence[stepIndex];
-    const val = userInput.value.replace(/\D/g, ''); 
-    userResults.push({ lvl: s.lvl, correct: val === s.digits.join('') });
-    
-    stepIndex++;
-    runNextStep();
+mainDisp.textContent='';
+userInput.placeholder=".".repeat(s.digits.length);
+inputContainer.style.display='flex';
+userInput.focus();
+startTimer(12);
 }
 
-userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") submitAnswer(); });
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function startTimer(seconds){
+let remaining = seconds;
+timerLabel.textContent = `Zostáva: ${remaining} sekúnd`;
+progress.style.transition='none';
+progress.style.width='100%';
+setTimeout(()=>{progress.style.transition=`width ${seconds*1000}ms linear`; progress.style.width='0%';},50);
 
-function showResults() {
+countdownInterval=setInterval(()=>{
+remaining--;
+timerLabel.textContent=`Zostáva: ${remaining} sekúnd`;
+if(remaining<=0) clearInterval(countdownInterval);
+},1000);
+
+inputTimeout=setTimeout(()=>submitAnswer(), seconds*1000);
+}
+
+function submitAnswer(){
+clearTimeout(inputTimeout);
+clearInterval(countdownInterval);
+progress.style.transition='none';
+progress.style.width='0%';
+
+const s = currentSequence[stepIndex];
+const val = userInput.value.replace(/\D/g,'');
+
+userResults.push({
+lvl: s.lvl,
+correct: val===s.digits.join('')
+});
+
+stepIndex++;
+runNextStep();
+}
+
+userInput.addEventListener("keypress",(e)=>{if(e.key==="Enter") submitAnswer();});
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// --- vyhodnotenie testovacieho testu ---
+function showPracticeResults(){
+  const correctRounds = userResults.filter(r => r.correct).length;
+  const totalRounds = practiceSequence.length;
+
+  document.getElementById('screen').innerHTML = `
+    <div class="results-container">
+      <h2 style="margin-bottom:1.5rem;font-size:1.5rem;">Výsledky testovacieho testu</h2>
+      <div class="card" style="font-size:1.5rem;">
+        <strong>${correctRounds} / ${totalRounds} kôl správne</strong>
+      </div>
+      <div class="card">
+        <strong>Tip</strong>
+        <p style="font-size:0.9rem;color:var(--gray);">
+          Tieto krátke kolá vám ukázali, ako funguje váš mozog pri zapamätaní si čísel. Teraz začína hlavný test!
+        </p>
+      </div>
+      <button class="btn-primary" onclick="startMainTest()">Spustiť hlavný test</button>
+    </div>
+  `;
+}
+
+// --- vyhodnotenie hlavného testu ---
+function showResults(){
     badge.textContent = "KONIEC TESTU";
-    inputContainer.style.display = 'none';
-    progress.style.display = 'none';
-    
-    const stats = [1, 2, 3, 4].map(l => {
-        const ok = userResults.filter(r => r.lvl === l && r.correct).length;
-        return `<tr><td style="color:var(--gray)">Úroveň ${l}</td><td style="text-align:right"><strong>${ok} / 3</strong></td></tr>`;
-    }).join('');
+    inputContainer.style.display='none';
+    progress.style.display='none';
 
+    const totalRounds = userResults.length;
+    const correctRounds = userResults.filter(r => r.correct).length;
+    const percent = Math.round((correctRounds / totalRounds) * 100);
+
+    let interpretation = "";
+    if(percent < 50) interpretation = "Vaša krátkodobá pamäť je slabšia ako priemer.";
+    else if(percent < 80) interpretation = "Vaša krátkodobá pamäť je priemerná.";
+    else interpretation = "Vaša krátkodobá pamäť je nadpriemerná!";
+
+    // zachovanie pôvodných informácií
     document.getElementById('screen').innerHTML = `
-        <div class="results-container">
-            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Vaše výsledky</h2>
-            <table class="results-table"><tbody>${stats}</tbody></table>
-            <div class="card">
-                <strong>Millerovo číslo (7 ± 2)</strong>
-                <p style="font-size: 0.9rem; color: var(--gray);">Väčšina ľudí si udrží 5 až 9 položiek. Úroveň 3 (7 čísiel) je kritický bod.</p>
-            </div>
-            <div class="card">
-                <strong>Cowanov limit (4 ± 1)</strong>
-                <p style="font-size: 0.9rem; color: var(--gray);">Čistá kapacita bez pomôcok je často len okolo 4 položiek.</p>
-            </div>
-            <button class="btn-primary" onclick="location.reload()">Reštartovať</button>
+    <div class="results-container">
+        <h2 style="margin-bottom:1.5rem;font-size:1.5rem;">Výsledok testu</h2>
+
+        <div class="card" style="font-size:1.2rem;">
+            <strong>${correctRounds} / ${totalRounds} kôl správne</strong>
+            <p style="margin-top:10px;color:var(--gray);">${percent}% správne</p>
+            <p style="margin-top:10px;color:var(--accent);font-weight:600;">${interpretation}</p>
         </div>
+
+        <table class="results-table">
+            <tbody>
+                <tr><td style="color:var(--gray)">Úroveň 1</td><td style="text-align:right"><strong>${userResults.filter(r=>r.lvl===1 && r.correct).length} / 3</strong></td></tr>
+                <tr><td style="color:var(--gray)">Úroveň 2</td><td style="text-align:right"><strong>${userResults.filter(r=>r.lvl===2 && r.correct).length} / 3</strong></td></tr>
+                <tr><td style="color:var(--gray)">Úroveň 3</td><td style="text-align:right"><strong>${userResults.filter(r=>r.lvl===3 && r.correct).length} / 3</strong></td></tr>
+                <tr><td style="color:var(--gray)">Úroveň 4</td><td style="text-align:right"><strong>${userResults.filter(r=>r.lvl===4 && r.correct).length} / 3</strong></td></tr>
+            </tbody>
+        </table>
+
+        <div class="card">
+            <strong>Millerovo číslo (7 ± 2)</strong>
+            <p style="font-size:0.9rem;color:var(--gray);">
+                Väčšina ľudí si dokáže zapamätať 5 až 9 položiek naraz. Úroveň 3 (7 čísiel) je kritický bod.
+            </p>
+        </div>
+
+        <div class="card">
+            <strong>Cowanov limit (4 ± 1)</strong>
+            <p style="font-size:0.9rem;color:var(--gray);">
+                Čistá kapacita bez pomôcok je často len okolo 4 položiek.
+            </p>
+        </div>
+
+        <div class="card">
+            <strong>Zaujímavý fakt</strong>
+            <p style="font-size:0.9rem;color:var(--gray);">
+                Ľudia si dokážu zapamätať dlhšie sekvencie pomocou stratégie <em>chunking</em>, kde sa jednotlivé čísla spájajú do väčších blokov informácií.
+            </p>
+        </div>
+
+        <button class="btn-primary" onclick="location.reload()">Skúsiť znova</button>
+    </div>
     `;
-    window.scrollTo(0, 0);
+    window.scrollTo(0,0);
+}
+
+// --- spustenie hlavného testu ---
+function startMainTest(){
+practiceMode=false;
+currentSequence=mainSequence;
+stepIndex=0;
+userResults=[];
+
+document.getElementById('screen').innerHTML=`
+<div id="level-badge">PRIPRAVUJEM...</div>
+<div id="main-display"></div>
+<div id="input-container" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:300px;">
+<p id="timer-label">Zostáva: 12 sekúnd</p>
+<input type="text" id="user-input" inputmode="numeric" autocomplete="off">
+<button class="btn-primary" style="margin-top:0;padding:0.8rem 2rem;" onclick="submitAnswer()">ODOSLAŤ</button>
+</div>
+<div id="progress-bar"></div>
+`;
+
+mainDisp=document.getElementById('main-display');
+badge=document.getElementById('level-badge');
+progress=document.getElementById('progress-bar');
+inputContainer=document.getElementById('input-container');
+userInput=document.getElementById('user-input');
+timerLabel=document.getElementById('timer-label');
+
+userInput.addEventListener("keypress",(e)=>{if(e.key==="Enter") submitAnswer();});
+
+runNextStep();
 }
 </script>
 </body>
